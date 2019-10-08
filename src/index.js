@@ -1,4 +1,4 @@
-import { Application, Sprite, Rectangle, Graphics, UPDATE_PRIORITY } from 'pixi.js'
+import { Application, Sprite, Rectangle, Graphics } from 'pixi.js'
 
 const app = new Application({ width: 1280, height: 720 })
 const loader = app.loader
