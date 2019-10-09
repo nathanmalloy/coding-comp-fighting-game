@@ -43,6 +43,11 @@ let lifeBar1, lifeBarEmpty1
 let lifeBar2, lifeBarEmpty2
 let ryu, player2
 
+const ryuSpriteWidth = 49
+const ryuSpriteHeight = 90
+const ryuScale = 4.0
+const xPosScale = ryuSpriteWidth * ryuScale
+
 const idleFrames = 4
 let currentFrame = 0
 
@@ -51,25 +56,27 @@ let currentIdleFrameDelay = 0
 
 let timeSinceLastTick = 0
 
+let isInit = true
+
 loader
-.add('ryu', './sprites/ryu.gif')
-.add('./sprites/background.jpg')
-.load(setup)
+  .add('ryu', './sprites/ryu.gif')
+  .add('background', './sprites/background.jpg')
+  .load(setup)
 
 function setup() {
   const ryuSheet = Texture.from('ryu',)
-  const ryuWidth = 54
-  const ryuFrame = new Rectangle(0, 15, ryuWidth, 90)
+  const ryuFrame = new Rectangle(0, 15, ryuSpriteWidth, ryuSpriteHeight)
   ryuSheet.frame = ryuFrame
   ryu = new Sprite(ryuSheet)
-  ryu.scale.set(4.0, 4.0)
+  const ryuScale = 4.0 //0.5 * app.view.height / ryuSpriteHeight
+  ryu.scale.set(ryuScale)
   ryu.x = 300
   ryu.y = floorY
   ryu.anchor.x = 0.5
   ryu.anchor.y = 1
 
   player2 = new Sprite(Texture.from('ryu'))
-  player2.scale.set(4.0, 4.0)
+  player2.scale.set(ryuScale)
   player2.x = 900
   player2.y = floorY
   player2.anchor.x = 0.5
@@ -77,7 +84,9 @@ function setup() {
   player2.scale.x *= -1
   
 
-  const background = new Sprite(loader.resources['./sprites/background.jpg'].texture)
+  const background = new Sprite(loader.resources['background'].texture)
+  // background.height = app.view.height
+  // background.x += (app.view.width - background.width) / 2
 
   lifeBarEmpty1 = drawLifeBarEmpty(true)
   lifeBar1 = drawLifeBarFill(true)
@@ -97,10 +106,15 @@ function setup() {
   app.stage.addChild(p1Name)
   app.stage.addChild(p2Name)
 
-  app.ticker.add(delta => gameLoop(delta / 60)) // convert delta to seconds instead of frames
-  setInterval(() => {
-    serverTick(data)
-  }, 1000)
+  if (isInit) {
+    app.ticker.add(delta => gameLoop(delta / 60)) // convert delta to seconds instead of frames
+    setInterval(() => {
+      serverTick(data)
+    }, 1000)
+    isInit = false
+  }
+
+  setTimeout(() => reset(), 10000)
 }
 
 function gameLoop(delta) {
@@ -134,13 +148,16 @@ function serverTick(data) {
   timeSinceLastTick = 0
   prevData = { ...data }
 
-  data.player1 = { ...data.player1, health: Math.max(data.player1.health - 10, 0) }
-  data.player2 = { ...data.player2, health: Math.max(data.player2.health - 10, 0) }
+  if (data.winner) {
+    declareWinner(data.winner)
+  } else {
+    data.player1 = { ...data.player1, health: Math.max(data.player1.health - 10, 0) }
+    data.player2 = { ...data.player2, health: Math.max(data.player2.health - 10, 0) }
+  }
 }
 
 function updateRyuFrame() {
-  const ryuWidth = 49
-  const idleFrame = new Rectangle(2 + ryuWidth * currentFrame, 15, ryuWidth, 90)
+  const idleFrame = new Rectangle(2 + ryuSpriteWidth * currentFrame, 15, ryuSpriteWidth, 90)
   const texture = loader.resources['ryu'].texture
   texture.frame = idleFrame
   ryu.texture = texture
@@ -148,8 +165,7 @@ function updateRyuFrame() {
 
 function calcPlayerX(x) {
   const centerX = 3
-  const cellWidth = 0.1 * app.view.width
-  return screenCenterX + (x - centerX) * cellWidth
+  return screenCenterX + (x - centerX) * xPosScale
 }
 
 function calcPlayerY(y) {
@@ -204,14 +220,61 @@ function getLifebarRight() {
 }
 
 function drawPlayerName(name, isLeft) {
-  const fontSize = 26
+  const fontSize = 0.036 * app.view.height
   const marginBottom = 5
   const y = lifebarProps.top + lifebarProps.height + marginBottom
-  const style = new TextStyle({ fontFamily: 'Arial Black', fontSize, fontVariant: 'small-caps', fill: 'white', stroke: '#000000', strokeThickness: 3 })
+  const style = new TextStyle({
+    fontFamily: 'Arial Black',
+    fontSize,
+    fontVariant: 'small-caps',
+    fill: 'white',
+    stroke: '#000000',
+    strokeThickness: 3,
+  })
   const text = new Text(name, style)
   text.position.set(isLeft ? getLifebarLeft() : getLifebarRight(), y)
   if (!isLeft) {
     text.position.x -= text.width
   }
   return text
+}
+
+function drawWinText(winnerName) {
+  const fontSize = 0.1 * app.view.height
+  const style = new TextStyle({
+    fontSize,
+    fontFamily: 'Arial Black',
+    fill: 'white',
+    stroke: 'black',
+    strokeThickness: 3,
+    align: 'center',
+    fontVariant: 'small-caps',
+    letterSpacing: 4,
+  })
+  const text = new Text(`${winnerName} WINS`, style)
+  text.position.set(screenCenterX - text.width / 2, 0.3 * app.view.height)
+  return text
+}
+
+function declareWinner(winnerName) {
+  app.addChild(drawWinText(winnerName))
+}
+
+function reset() {
+  app.stage.removeChildren()
+  data.player1 = {
+    name: 'Player 1',
+    health: 100,
+    maxHealth: 100,
+    x: 3,
+    y: 0,
+  }
+  data.player2 = {
+    name: 'Player 2',
+    health: 100,
+    maxHealth: 100,
+    x: 4,
+    y: 1,
+  }
+  setup()
 }
