@@ -1,5 +1,6 @@
 import { Application, Text, TextStyle, Sprite } from 'pixi.js'
 import { addHUD } from './lifebars'
+import { lerp, easeOut } from './math'
 
 function setupApp() {
   const app = new Application({ width: 1280, height: 720 })
@@ -25,7 +26,7 @@ function setupApp() {
       health: 100,
       maxHealth: 100,
       x: 5,
-      y: 1,
+      y: 0,
       isFacingLeft: true,
     }
   }
@@ -37,7 +38,8 @@ function setupApp() {
   const ryuSpriteWidth = 49
   const ryuSpriteHeight = 90
   const ryuScale = 4.0 //0.5 * app.view.height / ryuSpriteHeight
-  const xPosScale = ryuSpriteWidth * ryuScale
+  const xPosScale = ryuSpriteWidth * ryuScale - 4
+  const playerMoveTransitionDuration = 0.2 // sec
 
   const idleFrames = 4
   let currentFrame = 0
@@ -106,8 +108,8 @@ function setupApp() {
     if (data.winner) {
       declareWinner(data.winner)
     } else {
-      data.player1 = { ...data.player1 }
-      data.player2 = { ...data.player2, health: Math.max(data.player2.health - 10, 0) }
+      data.player1 = { ...data.player1, x: data.player1.x === 3 ? 4 : 3 }
+      data.player2 = { ...data.player2, health: Math.random() < 0.3 ? Math.max(data.player2.health - 10, 0) : data.player2.health }
     }
   }
 
@@ -123,7 +125,10 @@ function setupApp() {
   }
 
   function redrawPlayer(player, prevPlayerData, playerData) {
-    player.position.set(calcPlayerX(playerData.x), calcPlayerY(playerData.y))
+    const tMove = Math.min(timeSinceLastTick / playerMoveTransitionDuration, 1.0)
+    const x = lerp(calcPlayerX(prevPlayerData.x), calcPlayerX(playerData.x), easeOut(tMove))
+    const y = lerp(calcPlayerY(prevPlayerData.y), calcPlayerY(playerData.y), easeOut(tMove))
+    player.position.set(x, y)
 
     updatePlayerFrame(player, prevPlayerData, playerData)
 
@@ -137,6 +142,8 @@ function setupApp() {
   function updatePlayerFrame(player, prevPlayerData, playerData) {
     if (wasHit(prevPlayerData, playerData)) {
       player.texture = getHitFrame()
+
+      player.position.x += calcShake()
     } else {
       player.texture = getIdle(currentFrame)
     }
@@ -152,6 +159,14 @@ function setupApp() {
 
   function wasHit(prevPlayerData, playerData) {
     return prevPlayerData.health > playerData.health
+  }
+
+  function calcShake() {
+    const shakeDuration = 0.5
+    const shakeDistance = 0.2 * ryuSpriteWidth
+    const shakes = 4
+    const offset = timeSinceLastTick > shakeDuration ? 0 : Math.sin(timeSinceLastTick * (shakes * Math.PI * 2 / shakeDuration)) * shakeDistance
+    return offset
   }
 
   function calcPlayerX(x) {
@@ -199,7 +214,7 @@ function setupApp() {
       health: 100,
       maxHealth: 100,
       x: 4,
-      y: 1,
+      y: 0,
       isFacingLeft: true,
     }
     setup()
