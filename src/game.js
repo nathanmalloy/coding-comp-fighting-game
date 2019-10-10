@@ -1,10 +1,9 @@
-import { Application, Texture, Text, TextStyle, Sprite, Rectangle } from 'pixi.js'
+import { Application, Text, TextStyle, Sprite } from 'pixi.js'
 import { addHUD } from './lifebars'
 
 function setupApp() {
   const app = new Application({ width: 1280, height: 720 })
   const loader = app.loader
-  document.body.appendChild(app.view)
 
   const screenCenterX = app.view.width / 2
   const screenCenterY = app.view.height / 2
@@ -27,6 +26,7 @@ function setupApp() {
       maxHealth: 100,
       x: 5,
       y: 1,
+      isFacingLeft: true,
     }
   }
   prevData = { ...data }
@@ -36,7 +36,7 @@ function setupApp() {
 
   const ryuSpriteWidth = 49
   const ryuSpriteHeight = 90
-  const ryuScale = 4.0
+  const ryuScale = 4.0 //0.5 * app.view.height / ryuSpriteHeight
   const xPosScale = ryuSpriteWidth * ryuScale
 
   const idleFrames = 4
@@ -50,36 +50,18 @@ function setupApp() {
   let isInit = true
 
   loader
-    .add('ryu', './sprites/ryu.gif')
+    .add('spritesheet', './sprites/player-spritesheet.json')
     .add('background', './sprites/background.jpg')
     .load(setup)
 
   function setup() {
-    const ryuSheet = Texture.from('ryu',)
-    const ryuFrame = new Rectangle(0, 15, ryuSpriteWidth, ryuSpriteHeight)
-    ryuSheet.frame = ryuFrame
-    ryu = new Sprite(ryuSheet)
-    const ryuScale = 4.0 //0.5 * app.view.height / ryuSpriteHeight
-    ryu.scale.set(ryuScale)
-    ryu.x = 300
-    ryu.y = floorY
-    ryu.anchor.x = 0.5
-    ryu.anchor.y = 1
-
-    player2 = new Sprite(Texture.from('ryu'))
-    player2.scale.set(ryuScale)
-    player2.x = 900
-    player2.y = floorY
-    player2.anchor.x = 0.5
-    player2.anchor.y = 1
-    player2.scale.x *= -1
-    
+    ryu = drawPlayer()
+    player2 = drawPlayer()
 
     const background = new Sprite(loader.resources['background'].texture)
     // background.height = app.view.height
     // background.x += (app.view.width - background.width) / 2
 
-    
     app.stage.addChild(background)
     app.stage.addChild(ryu)
     app.stage.addChild(player2)
@@ -113,10 +95,8 @@ function setupApp() {
   function redraw() {
     hud.update(prevData, data, timeSinceLastTick)
 
-    ryu.position.set(calcPlayerX(data.player1.x), calcPlayerY(data.player1.y))
-    player2.position.set(calcPlayerX(data.player2.x), calcPlayerY(data.player2.y))
-
-    updateRyuFrame()
+    redrawPlayer(ryu, prevData.player1, data.player1)
+    redrawPlayer(player2, prevData.player2, data.player2)
   }
 
   function serverTick(data) {
@@ -126,16 +106,52 @@ function setupApp() {
     if (data.winner) {
       declareWinner(data.winner)
     } else {
-      data.player1 = { ...data.player1, health: Math.max(data.player1.health - 10, 0) }
+      data.player1 = { ...data.player1 }
       data.player2 = { ...data.player2, health: Math.max(data.player2.health - 10, 0) }
     }
   }
 
-  function updateRyuFrame() {
-    const idleFrame = new Rectangle(2 + ryuSpriteWidth * currentFrame, 15, ryuSpriteWidth, 90)
-    const texture = loader.resources['ryu'].texture
-    texture.frame = idleFrame
-    ryu.texture = texture
+  function drawPlayer() {
+    const sprite = new Sprite(getIdle())
+    sprite.scale.set(ryuScale)
+    // sprite.x = 900
+    sprite.y = floorY
+    sprite.anchor.x = 0.5
+    sprite.anchor.y = 1
+
+    return sprite
+  }
+
+  function redrawPlayer(player, prevPlayerData, playerData) {
+    player.position.set(calcPlayerX(playerData.x), calcPlayerY(playerData.y))
+
+    updatePlayerFrame(player, prevPlayerData, playerData)
+
+    if (playerData.isFacingLeft) {
+      player.scale.x = -ryuScale
+    } else {
+      player.scale.x = ryuScale
+    }
+  }
+
+  function updatePlayerFrame(player, prevPlayerData, playerData) {
+    if (wasHit(prevPlayerData, playerData)) {
+      player.texture = getHitFrame()
+    } else {
+      player.texture = getIdle(currentFrame)
+    }
+  }
+
+  function getIdle(currentFrame = 0) {
+    return loader.resources['spritesheet'].textures[`idle-${currentFrame}`]
+  }
+
+  function getHitFrame(currentFrame = 0) {
+    return loader.resources['spritesheet'].textures['hit']
+  }
+
+  function wasHit(prevPlayerData, playerData) {
+    return prevPlayerData.health > playerData.health
   }
 
   function calcPlayerX(x) {
@@ -184,6 +200,7 @@ function setupApp() {
       maxHealth: 100,
       x: 4,
       y: 1,
+      isFacingLeft: true,
     }
     setup()
   }

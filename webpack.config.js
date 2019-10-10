@@ -1,3 +1,5 @@
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
 module.exports = {
   module: {
     rules: [
@@ -12,5 +14,12 @@ module.exports = {
     hot: true,
     port: 9000,
     contentBase: './dist',
+    writeToDisk: true,
   },
+  plugins: [
+    new CopyWebpackPlugin([
+      { from: 'sprites', to: 'sprites' },
+      { from: 'index.html', to: 'index.html' }
+    ])
+  ]
 }
