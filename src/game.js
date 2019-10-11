@@ -1,5 +1,6 @@
 import { Application, Text, TextStyle, Sprite } from 'pixi.js'
 import { addHUD } from './lifebars'
+import { drawCountdown } from './countdown'
 import { lerp, easeOut } from './math'
 
 function setupApp() {
@@ -34,6 +35,7 @@ function setupApp() {
   prevData = { ...data }
 
   let ryu, player2
+  let countdown
   let hud
 
   // ryu
@@ -77,9 +79,13 @@ function setupApp() {
     // background.height = app.view.height
     // background.x += (app.view.width - background.width) / 2
 
+    countdown = drawCountdown(app.view.width, app.view.height, 3)
+    countdown.remove()
+
     app.stage.addChild(background)
     app.stage.addChild(ryu)
     app.stage.addChild(player2)
+    app.stage.addChild(countdown)
     hud = addHUD(app, data.player1.name, data.player2.name)
 
     if (isInit) {
