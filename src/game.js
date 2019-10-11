@@ -9,7 +9,7 @@ function setupApp() {
   const screenCenterX = app.view.width / 2
   const screenCenterY = app.view.height / 2
 
-  const floorY = 0.94 * app.view.height
+  const floorY = 0.92 * app.view.height
 
   let prevData
 
@@ -20,6 +20,7 @@ function setupApp() {
       maxHealth: 100,
       x: 1,
       y: 0,
+      isFacingRight: true,
     },
     player2: {
       name: 'Player 2',
@@ -27,7 +28,7 @@ function setupApp() {
       maxHealth: 100,
       x: 5,
       y: 0,
-      isFacingLeft: true,
+      isFacingRight: false,
     }
   }
   prevData = { ...data }
@@ -35,10 +36,21 @@ function setupApp() {
   let ryu, player2
   let hud
 
-  const ryuSpriteWidth = 49
-  const ryuSpriteHeight = 90
-  const ryuScale = 4.0 //0.5 * app.view.height / ryuSpriteHeight
-  const xPosScale = ryuSpriteWidth * ryuScale - 4
+  // ryu
+  // const playerSpriteWidth = 49
+  // const playerSpriteHeight = 90
+  // const playerScale = 4.0 //0.5 * app.view.height / ryuSpriteHeight
+  
+  // panda
+  const playerSpriteWidth = 275
+  const playerSpriteHeight = 376
+  const playerScale = 0.7
+
+  const pandaPoseMap = {
+    hurt: 'idle',
+  }
+
+  const xPosScale = playerSpriteWidth * playerScale - 4
   const playerMoveTransitionDuration = 0.2 // sec
 
   const idleFrames = 4
@@ -52,7 +64,8 @@ function setupApp() {
   let isInit = true
 
   loader
-    .add('spritesheet', './sprites/player-spritesheet.json')
+    .add('ryu', './sprites/ryu.json')
+    .add('panda', './sprites/panda.json')
     .add('background', './sprites/background.jpg')
     .load(setup)
 
@@ -114,8 +127,8 @@ function setupApp() {
   }
 
   function drawPlayer() {
-    const sprite = new Sprite(getIdle())
-    sprite.scale.set(ryuScale)
+    const sprite = new Sprite(getFrame('idle'))
+    sprite.scale.set(playerScale)
     // sprite.x = 900
     sprite.y = floorY
     sprite.anchor.x = 0.5
@@ -132,29 +145,26 @@ function setupApp() {
 
     updatePlayerFrame(player, prevPlayerData, playerData)
 
-    if (playerData.isFacingLeft) {
-      player.scale.x = -ryuScale
+    if (playerData.isFacingRight) {
+      player.scale.x = -playerScale
     } else {
-      player.scale.x = ryuScale
+      player.scale.x = playerScale
     }
   }
 
   function updatePlayerFrame(player, prevPlayerData, playerData) {
     if (wasHit(prevPlayerData, playerData)) {
-      player.texture = getHitFrame()
+      player.texture = getFrame('hurt')
 
       player.position.x += calcShake()
     } else {
-      player.texture = getIdle(currentFrame)
-    }
+      player.texture = getFrame('idle', currentFrame)
+  }
   }
 
-  function getIdle(currentFrame = 0) {
-    return loader.resources['spritesheet'].textures[`idle-${currentFrame}`]
-  }
-
-  function getHitFrame(currentFrame = 0) {
-    return loader.resources['spritesheet'].textures['hit']
+  function getFrame(pose, currentFrame = 0) {
+    const character = loader.resources['panda'].textures
+    return character[`${pose}-${currentFrame}`] || character[pose] || character[pandaPoseMap[pose]]
   }
 
   function wasHit(prevPlayerData, playerData) {
@@ -163,7 +173,7 @@ function setupApp() {
 
   function calcShake() {
     const shakeDuration = 0.5
-    const shakeDistance = 0.2 * ryuSpriteWidth
+    const shakeDistance = 0.12 * playerSpriteWidth
     const shakes = 4
     const offset = timeSinceLastTick > shakeDuration ? 0 : Math.sin(timeSinceLastTick * (shakes * Math.PI * 2 / shakeDuration)) * shakeDistance
     return offset
@@ -208,6 +218,7 @@ function setupApp() {
       maxHealth: 100,
       x: 3,
       y: 0,
+      isFacingRight: true,
     }
     data.player2 = {
       name: 'Player 2',
@@ -215,7 +226,7 @@ function setupApp() {
       maxHealth: 100,
       x: 4,
       y: 0,
-      isFacingLeft: true,
+      isFacingRight: false,
     }
     setup()
   }
