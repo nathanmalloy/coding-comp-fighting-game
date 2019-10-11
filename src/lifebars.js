@@ -19,7 +19,7 @@ export function addHUD(app, p1Name, p2Name) {
     const { width, height, top, distanceFromCenter } = lifebarProps
     const lifeBarEmpty = new Graphics()
     lifeBarEmpty.beginFill(0xdf2800)
-    lifeBarEmpty.lineStyle(2, 0xffffff, 1)
+    lifeBarEmpty.lineStyle(2, 0xffffff, 1, 1)
     lifeBarEmpty.drawRect(
       isLeft ? getLifebarLeft() : screenCenterX + distanceFromCenter,
       top,
@@ -38,15 +38,14 @@ export function addHUD(app, p1Name, p2Name) {
     const { width, height, top, distanceFromCenter, border } = lifebarProps
     if (!health) return rect.clear()
 
-    const halfBorder = border / 2
     return rect
       .clear()
       .beginFill(0xffff00)
       .drawRect(
-        (isLeft ? getLifebarLeft(health) + halfBorder : screenCenterX + distanceFromCenter) + halfBorder,
-        top + halfBorder,
-        width * health - halfBorder * 2,
-        height - halfBorder * 2
+        (isLeft ? getLifebarLeft(health) : screenCenterX + distanceFromCenter),
+        top,
+        width * health,
+        height
       )
       .endFill()
   }
