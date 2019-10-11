@@ -1,6 +1,7 @@
 import { Application, Text, TextStyle, Sprite } from 'pixi.js'
 import { addHUD } from './lifebars'
 import { drawCountdown } from './countdown'
+import { init as initInput } from './keyboard-input'
 import { lerp, easeOut } from './math'
 
 function setupApp() {
@@ -97,6 +98,8 @@ function setupApp() {
     }
 
     setTimeout(() => reset(), 10000)
+
+    initInput()
   }
 
   function gameLoop(delta) {
@@ -121,6 +124,7 @@ function setupApp() {
   }
 
   function serverTick(data) {
+    //TODO: if kb input is enabled, call reset
     timeSinceLastTick = 0
     prevData = { ...data }
 
