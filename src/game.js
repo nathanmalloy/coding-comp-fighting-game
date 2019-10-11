@@ -79,12 +79,23 @@ function setupApp() {
     // background.height = app.view.height
     // background.x += (app.view.width - background.width) / 2
 
+    const blockEffect = new Sprite(loader.resources['ryu'].textures['block-effect'])
+    blockEffect.scale.set(2.5)
+    const isBlockedOnFront = false
+    blockEffect.anchor.x = isBlockedOnFront ? 0 : 1
+    blockEffect.position.set(
+      calcPlayerX(data.player2.x) + player2.width * (isBlockedOnFront ? 0.33 : -0.33),
+      calcPlayerY(data.player2.y) - player2.height * 0.66
+    )
+    blockEffect.visible = false
+
     countdown = drawCountdown(app.view.width, app.view.height, 3)
     countdown.remove()
 
     app.stage.addChild(background)
     app.stage.addChild(ryu)
     app.stage.addChild(player2)
+    app.stage.addChild(blockEffect)
     app.stage.addChild(countdown)
     hud = addHUD(app, data.player1.name, data.player2.name)
 
@@ -165,7 +176,7 @@ function setupApp() {
       player.position.x += calcShake()
     } else {
       player.texture = getFrame('idle', currentFrame)
-  }
+    }
   }
 
   function getFrame(pose, currentFrame = 0) {
