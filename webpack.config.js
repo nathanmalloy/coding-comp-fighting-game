@@ -19,7 +19,8 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin([
       { from: 'sprites', to: 'sprites' },
-      { from: 'index.html', to: 'index.html' }
+      { from: 'index.html', to: 'index.html' },
+      { from: 'index.css', to: 'index.css' }
     ])
   ]
 }

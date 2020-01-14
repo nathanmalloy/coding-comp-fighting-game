@@ -3,8 +3,9 @@ import { addHUD } from './lifebars'
 import { drawCountdown } from './countdown'
 import { lerp, easeOut } from './math'
 
-function setupApp() {
+function setupApp(id) {
   const app = new Application({ width: 1280, height: 720 })
+  app.id = id
   const loader = app.loader
 
   const screenCenterX = app.view.width / 2
@@ -165,7 +166,7 @@ function setupApp() {
       player.position.x += calcShake()
     } else {
       player.texture = getFrame('idle', currentFrame)
-  }
+    }
   }
 
   function getFrame(pose, currentFrame = 0) {
