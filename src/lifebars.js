@@ -70,11 +70,33 @@ export function addHUD(app, p1Name, p2Name) {
     return text
   }
 
+  function drawTimer() {
+    const fontSize = 0.06 * screenHeight
+    const x = screenCenterX
+    const y = lifebarProps.top + lifebarProps.height / 2
+
+    const style = new TextStyle({
+      fontFamily: 'Arial Black',
+      fontSize,
+      fill: 'white',
+      stroke: '#000000',
+      strokeThickness: 5,
+    })
+    const text = new Text('', style)
+    text.anchor.set(0.5)
+    text.position.set(x, y)
+    return text
+  }
+
   function updateHealthBar(lifebar, isLeft, prevHealth, health, maxHealth, timeSinceLastTick) {
     const prevPercentage = prevHealth / maxHealth
     const percentage = health / maxHealth
     const lerpPercentage = lerp(prevPercentage, percentage, Math.min(timeSinceLastTick / lifebarProps.transitionDuration, 1.0))
     drawLifeBarAtHealth(lifebar, lerpPercentage, isLeft)
+  }
+
+  function updateTimer(timer, turnsLeft) {
+    timer.text = (turnsLeft || '00').toString().padStart(2, 0)
   }
 
   function getLifebarLeft(health = 1.0) {
@@ -90,6 +112,7 @@ export function addHUD(app, p1Name, p2Name) {
   function update(prevData, data, timeSinceLastTick) {
     updateHealthBar(lifeBar1, true, prevData.player1.health, data.player1.health, data.player1.maxHealth, timeSinceLastTick)
     updateHealthBar(lifeBar2, false, prevData.player2.health, data.player2.health, data.player2.maxHealth, timeSinceLastTick)
+    updateTimer(timer, data.turnsLeft)
   }
 
   const lifeBarEmpty1 = drawLifeBarEmpty(true)
@@ -99,6 +122,7 @@ export function addHUD(app, p1Name, p2Name) {
 
   const name1 = drawPlayerName(p1Name, true)
   const name2 = drawPlayerName(p2Name, false)
+  const timer = drawTimer()
 
   app.stage.addChild(lifeBarEmpty1)
   app.stage.addChild(lifeBar1)
@@ -107,6 +131,8 @@ export function addHUD(app, p1Name, p2Name) {
 
   app.stage.addChild(name1)
   app.stage.addChild(name2)
+
+  app.stage.addChild(timer)
 
   return { update }
 }

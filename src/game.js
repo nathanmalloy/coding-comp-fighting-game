@@ -31,7 +31,8 @@ function setupApp(id) {
       x: 5,
       y: 0,
       isFacingRight: false,
-    }
+    },
+    turnsLeft: 20,
   }
   prevData = { ...data }
 
@@ -128,8 +129,10 @@ function setupApp(id) {
     if (data.winner) {
       declareWinner(data.winner)
     } else {
+      // TODO: remove these fake updates when backend is working
       data.player1 = { ...data.player1, x: data.player1.x === 3 ? 4 : 3 }
       data.player2 = { ...data.player2, health: Math.random() < 0.3 ? Math.max(data.player2.health - 10, 0) : data.player2.health }
+      data.turnsLeft--
     }
   }
 
