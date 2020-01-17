@@ -143,13 +143,31 @@ function setupApp(gameId, initialData) {
 
       player.position.x += calcShake()
     } else {
-      player.texture = getFrame('idle', currentFrame)
+      const state = getPlayerState(playerData)
+      player.texture = getFrame(state, currentFrame)
     }
   }
 
   function getFrame(pose, currentFrame = 0) {
     const character = loader.resources['panda'].textures
     return character[`${pose}-${currentFrame}`] || character[pose] || character[pandaPoseMap[pose]]
+  }
+
+  function getPlayerState(playerData) {
+    const isCrouched = playerData.location.length === 1
+    const isJumping = playerData.location[0].y > 0
+    const isAttacking = playerData.attacking_cells.length
+    const isBlocking = playerData.blocking_cells.length
+    // TODO: 'victory' and 'lose'
+    if (isJumping) {
+      return isAttacking ? 'attack-kick' : 'jump'
+    } else if (isAttacking) {
+      return isCrouched ? 'crouch-attack' : 'attack'
+    } else if (isBlocking) {
+      return isCrouched ? 'crouch-block' : 'block'
+    } else {
+      return isCrouched ? 'crouch' : 'idle'
+    }
   }
 
   function wasHit(prevPlayerData, playerData) {
