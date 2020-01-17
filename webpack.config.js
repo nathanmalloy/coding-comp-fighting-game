@@ -13,6 +13,10 @@ module.exports = {
   devServer: {
     hot: true,
     port: 9000,
+    proxy: {
+      // '/games': 'http://localhost:8080',
+      '/games': 'http://bot-fighter.inseng.net/',
+    },
     contentBase: './dist',
     writeToDisk: true,
   },

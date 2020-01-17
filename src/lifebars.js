@@ -1,6 +1,8 @@
 import { Graphics, Text, TextStyle } from 'pixi.js'
 import { lerp } from './math'
 
+const maxHealth = 100
+
 export function addHUD(app, p1Name, p2Name) {
   const screenWidth = app.view.width
   const screenHeight = app.view.height
@@ -110,9 +112,9 @@ export function addHUD(app, p1Name, p2Name) {
   }
 
   function update(prevData, data, timeSinceLastTick) {
-    updateHealthBar(lifeBar1, true, prevData.player1.health, data.player1.health, data.player1.maxHealth, timeSinceLastTick)
-    updateHealthBar(lifeBar2, false, prevData.player2.health, data.player2.health, data.player2.maxHealth, timeSinceLastTick)
-    updateTimer(timer, data.turnsLeft)
+    updateHealthBar(lifeBar1, true, prevData.players[0].health, data.players[0].health, maxHealth, timeSinceLastTick)
+    updateHealthBar(lifeBar2, false, prevData.players[1].health, data.players[1].health, maxHealth, timeSinceLastTick)
+    updateTimer(timer, data.time_remaining)
   }
 
   const lifeBarEmpty1 = drawLifeBarEmpty(true)

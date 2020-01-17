@@ -3,9 +3,8 @@ import { addHUD } from './lifebars'
 import { drawCountdown } from './countdown'
 import { lerp, easeOut } from './math'
 
-function setupApp(id) {
+function setupApp(gameId, initialData) {
   const app = new Application({ width: 1280, height: 720 })
-  app.id = id
   const loader = app.loader
 
   const screenCenterX = app.view.width / 2
@@ -13,28 +12,8 @@ function setupApp(id) {
 
   const floorY = 0.92 * app.view.height
 
-  let prevData
-
-  const data = {
-    player1: {
-      name: 'Player 1',
-      health: 100,
-      maxHealth: 100,
-      x: 1,
-      y: 0,
-      isFacingRight: true,
-    },
-    player2: {
-      name: 'Player 2',
-      health: 100,
-      maxHealth: 100,
-      x: 5,
-      y: 0,
-      isFacingRight: false,
-    },
-    turnsLeft: 20,
-  }
-  prevData = { ...data }
+  let data = initialData
+  let prevData = { ...data }
 
   let ryu, player2
   let countdown
@@ -54,7 +33,7 @@ function setupApp(id) {
     hurt: 'idle',
   }
 
-  const xPosScale = playerSpriteWidth * playerScale - 4
+  const xPosScale = playerSpriteWidth / 2 * playerScale - 4
   const playerMoveTransitionDuration = 0.2 // sec
 
   const idleFrames = 4
@@ -88,7 +67,7 @@ function setupApp(id) {
     app.stage.addChild(ryu)
     app.stage.addChild(player2)
     app.stage.addChild(countdown)
-    hud = addHUD(app, data.player1.name, data.player2.name)
+    hud = addHUD(app, data.players[0].name, data.players[1].name)
 
     if (isInit) {
       app.ticker.add(delta => gameLoop(delta / 60)) // convert delta to seconds instead of frames
@@ -97,8 +76,6 @@ function setupApp(id) {
       }, 1000)
       isInit = false
     }
-
-    setTimeout(() => reset(), 10000)
   }
 
   function gameLoop(delta) {
@@ -118,22 +95,19 @@ function setupApp(id) {
   function redraw() {
     hud.update(prevData, data, timeSinceLastTick)
 
-    redrawPlayer(ryu, prevData.player1, data.player1)
-    redrawPlayer(player2, prevData.player2, data.player2)
+    redrawPlayer(ryu, prevData.players[0], data.players[0])
+    redrawPlayer(player2, prevData.players[1], data.players[1])
   }
 
-  function serverTick(data) {
+  function serverTick(newData) {
+    data = newData
     timeSinceLastTick = 0
-    prevData = { ...data }
 
     if (data.winner) {
       declareWinner(data.winner)
-    } else {
-      // TODO: remove these fake updates when backend is working
-      data.player1 = { ...data.player1, x: data.player1.x === 3 ? 4 : 3 }
-      data.player2 = { ...data.player2, health: Math.random() < 0.3 ? Math.max(data.player2.health - 10, 0) : data.player2.health }
-      data.turnsLeft--
     }
+
+    prevData = { ...data }
   }
 
   function drawPlayer() {
@@ -149,13 +123,13 @@ function setupApp(id) {
 
   function redrawPlayer(player, prevPlayerData, playerData) {
     const tMove = Math.min(timeSinceLastTick / playerMoveTransitionDuration, 1.0)
-    const x = lerp(calcPlayerX(prevPlayerData.x), calcPlayerX(playerData.x), easeOut(tMove))
-    const y = lerp(calcPlayerY(prevPlayerData.y), calcPlayerY(playerData.y), easeOut(tMove))
+    const x = lerp(calcPlayerX(prevPlayerData.location[0].x), calcPlayerX(playerData.location[0].x), easeOut(tMove))
+    const y = lerp(calcPlayerY(prevPlayerData.location[0].y), calcPlayerY(playerData.location[0].y), easeOut(tMove))
     player.position.set(x, y)
 
     updatePlayerFrame(player, prevPlayerData, playerData)
 
-    if (playerData.isFacingRight) {
+    if (playerData.direction === 'RIGHT') {
       player.scale.x = -playerScale
     } else {
       player.scale.x = playerScale
@@ -190,7 +164,7 @@ function setupApp(id) {
   }
 
   function calcPlayerX(x) {
-    const centerX = 3
+    const centerX = 4.5
     return screenCenterX + (x - centerX) * xPosScale
   }
 
@@ -220,26 +194,8 @@ function setupApp(id) {
     app.addChild(drawWinText(winnerName))
   }
 
-  function reset() {
-    app.stage.removeChildren()
-    data.player1 = {
-      name: 'Player 1',
-      health: 100,
-      maxHealth: 100,
-      x: 3,
-      y: 0,
-      isFacingRight: true,
-    }
-    data.player2 = {
-      name: 'Player 2',
-      health: 100,
-      maxHealth: 100,
-      x: 4,
-      y: 0,
-      isFacingRight: false,
-    }
-    setup()
-  }
+  app.gameId = gameId
+  app.update = serverTick
 
   return app
 }
