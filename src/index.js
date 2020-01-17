@@ -1,5 +1,8 @@
 import axios from 'axios'
 import { setupApp } from './game'
+import divekickBot from './Bots/divekick-spam'
+import justBlockBot from './Bots/just-block'
+import buttonMashBot from './Bots/button-masher'
 
 const games = {}
 const container = document.querySelector('.container')
@@ -24,7 +27,7 @@ window.addEventListener('keydown', e => {
 
 setInterval(() => {
   getUpdateFromServer()
-}, 1000)
+}, 300)
 
 function getUpdateFromServer() {
   axios.get(`/games`).then(({ data }) => {
@@ -50,3 +53,9 @@ function move(direction, button) {
     console.log(response)
   })
 }
+
+axios.post('/games').then(() => {
+  divekickBot('Foo')
+  // justBlockBot('Bar')
+  buttonMashBot('Bar')
+})
