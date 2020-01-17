@@ -100,14 +100,15 @@ function setupApp(gameId, initialData) {
   }
 
   function serverTick(newData) {
+    if (newData.time_remaining === data.time_remaining) return
+    prevData = { ...data }
     data = newData
+
     timeSinceLastTick = 0
 
     if (data.winner) {
       declareWinner(data.winner)
     }
-
-    prevData = { ...data }
   }
 
   function drawPlayer() {
