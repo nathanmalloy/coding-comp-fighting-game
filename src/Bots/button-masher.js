@@ -13,10 +13,6 @@ export default function buttonMashBot(name) {
     { direction: 'left' },
     { direction: 'left' },
     { direction: 'left' },
-    { direction: 'left' },
-    { direction: 'left' },
-    { direction: 'right' },
-    { direction: 'right' },
     { direction: 'right' },
     { direction: 'right' },
     { direction: 'right' },
@@ -25,7 +21,7 @@ export default function buttonMashBot(name) {
   ]
 
   return bot(name, game => {
-    const choice = Math.trunc(Math.random() * choices.length + 1)
+    const choice = Math.trunc(Math.random() * choices.length)
     return choices[choice]
   })
 }
