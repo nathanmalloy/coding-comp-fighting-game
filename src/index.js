@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { setupApp } from './game'
 import divekickBot from './Bots/divekick-spam'
-import justBlockBot from './Bots/just-block'
+import turtleBot from './Bots/turtle'
 import buttonMashBot from './Bots/button-masher'
 
 const games = {}
@@ -56,6 +56,6 @@ function move(direction, button) {
 
 axios.post('/games').then(() => {
   divekickBot('Foo')
-  // justBlockBot('Bar')
+  // turtleBot('Bar')
   buttonMashBot('Bar')
 })
